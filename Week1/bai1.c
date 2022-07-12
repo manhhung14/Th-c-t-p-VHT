@@ -46,10 +46,7 @@ void *getFreq(void *args)
 	}
    	else
    	{
-		FILE *f;
-		f = fopen("freq.txt","w");
-		fprintf(f,"%ld",x);
-		fclose(f);
+		
 		freq = x;
 		time1.tv_sec = 0;
 	   	time1.tv_nsec = freq;
@@ -111,7 +108,7 @@ int main(int argc, char const *argv[])
         	pthread_join(SAMPLE,NULL);
 			pthread_join(LOGGING,NULL);
 			pthread_mutex_init(&mutex, NULL);
-			sleep(1);
+			//sleep(1);
 			
         }	
 		return 0;
