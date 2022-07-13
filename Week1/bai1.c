@@ -6,10 +6,11 @@
 #include"stdlib.h"
 #include "unistd.h"
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;  
 struct timespec tmp1;
 struct timespec tmp2;
-struct timespec time1;
+struct timespec t1;
+struct timespec t2;
 long freq;
 long check_freq;
   
@@ -41,24 +42,24 @@ void *getFreq(void *args)
 	long old_freq = get_freq();
 	if(old_freq == x)
 	{
-		pthread_mutex_lock(&mutex);
+		pthread_mutex_unlock(&mutex);
 		return NULL;
 	}
    	else
    	{
 		
 		freq = x;
-		time1.tv_sec = 0;
-	   	time1.tv_nsec = freq;
+		t1.tv_sec = 0;
+	   	t1.tv_nsec = freq;
    	}
-	pthread_mutex_lock(&mutex); 
+	pthread_mutex_unlock(&mutex); 
    	return NULL;
 
 }
 void *save_time(void *args)
 {
   struct timespec *tp = (struct timespec *)args;
-  //save time
+  
   if(tmp2.tv_sec != tp->tv_sec | tmp2.tv_nsec != tp->tv_nsec)
   {
     FILE *file;
@@ -90,17 +91,17 @@ void *save_time(void *args)
 int main(int argc, char const *argv[])
 {
 	
-		FILE *fp;
 		freq = get_freq();
         pthread_t SAMPLE;
         pthread_t INPUT;
         pthread_t LOGGING;
         int a1, a2, a3;
-   		time1.tv_sec = 0;
-   		time1.tv_nsec = freq;
+   		t1.tv_sec = 0;
+   		t1.tv_nsec = freq;  
 		pthread_mutex_init(&mutex, NULL);        
    		while(1)
         {
+			nanosleep(&t1 , &t2);
 			a1 = pthread_create(&INPUT,NULL,getFreq,&check_freq);
         	a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
         	a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
@@ -108,7 +109,7 @@ int main(int argc, char const *argv[])
         	pthread_join(SAMPLE,NULL);
 			pthread_join(LOGGING,NULL);
 			pthread_mutex_init(&mutex, NULL);
-			//sleep(1);
+			
 			
         }	
 		return 0;
