@@ -20,7 +20,7 @@ long get_freq()
  	long data;
  	FILE *f;
 	f = fopen("freq.txt","r");
-	char buff[150];
+	char buff[100];
 	fgets(buff,sizeof(buff),f);
 	char *eptr;
 	data = strtol(buff,&eptr,10);
@@ -29,63 +29,87 @@ long get_freq()
  }
 
 void *getTime(void *args )
-{		long x = *((long*)args);
-
-		clock_gettime(CLOCK_REALTIME,&tmp1);	
-		return NULL;
+{		
+		while (1)
+		{
+			long x = *((long*)args);
+			clock_nanosleep(CLOCK_REALTIME,0,&t1,&t2);
+			clock_gettime(CLOCK_REALTIME,&tmp1);	
+			//return NULL;
+		}
+		
+		
 }
 
 void *getFreq(void *args)
 {
-	pthread_mutex_lock(&mutex);
-	long x = *((long*)args);
-	long old_freq = get_freq();
-	if(old_freq == x)
-	{
-		pthread_mutex_unlock(&mutex);
-		return NULL;
-	}
-   	else
-   	{
+	while(1){
+		pthread_mutex_lock(&mutex);
+		long x = *((long*)args);
+		long new_freq = get_freq();
+		if(new_freq == x)
+		{
+			pthread_mutex_unlock(&mutex);
+			//return NULL;
+		}
+   		else
+   		{	
 		
-		freq = x;
-		t1.tv_sec = 0;
-	   	t1.tv_nsec = freq;
-   	}
-	pthread_mutex_unlock(&mutex); 
-   	return NULL;
+			freq = new_freq;
+			if (freq<1000000000)
+			{
+				t1.tv_sec = 0;
+				t1.tv_nsec = freq;
+			}
+			else{
+				t1.tv_sec = freq/1000000000;
+				t1.tv_nsec = freq%1000000000;
+			} 
+			
+			
+		}
+		pthread_mutex_unlock(&mutex); 
+		//return NULL;
+		}
+	
 
 }
 void *save_time(void *args)
 {
-  struct timespec *tp = (struct timespec *)args;
+	while(1){
+		struct timespec *tp = (struct timespec *)args;
   
-  if(tmp2.tv_sec != tp->tv_sec | tmp2.tv_nsec != tp->tv_nsec)
-  {
-    FILE *file;
-    file = fopen("time_and_interval.txt","a+");
-    long diff_sec = ((long) tp->tv_sec) - tmp2.tv_sec ;
-    long diff_nsec;
+		if(tmp2.tv_sec != tp->tv_sec | tmp2.tv_nsec != tp->tv_nsec)
+		{
+		FILE *file;
+		file = fopen("time_and_interval.txt","a+");
+		//file = fopen("100.txt","a+");
+		
+		unsigned long sub_sec;
+		unsigned long sub_nsec;
 
-    if(tp->tv_nsec > tmp2.tv_nsec)
-      {
-        diff_nsec = tp->tv_nsec - tmp2.tv_nsec;
-      }
-    else 
-      {
-        diff_nsec = tmp2.tv_nsec - tp->tv_nsec;
-        diff_sec = diff_sec - 1;
-      }
-    fprintf(file,"\n%ld.%09ld\n%ld.%09ld",tp->tv_sec,tp->tv_nsec,diff_sec,diff_nsec);  
-    fclose(file);
-    tmp2.tv_sec = tp->tv_sec;
-    tmp2.tv_nsec = tp->tv_nsec;
-    return NULL;
-  }
-  else
-  {
-    return NULL;
-  }
+		
+		if(tp->tv_nsec < tmp2.tv_nsec){
+			sub_nsec = 1000000000 + tp->tv_nsec - tmp2.tv_nsec;
+			sub_sec = tp->tv_sec - tmp2.tv_sec - 1;
+
+		}
+		else
+		{
+			sub_nsec =  tp->tv_nsec - tmp2.tv_nsec;
+			sub_sec = tp->tv_sec - tmp2.tv_sec;
+		}
+		
+		fprintf(file,"\n%ld.%09ld\n%ld.%09ld",tp->tv_sec,tp->tv_nsec,sub_sec,sub_nsec); 
+		//fprintf(file,"\n%ld.%09ld",sub_sec,sub_nsec);  
+		fclose(file);
+		tmp2.tv_sec = tp->tv_sec;
+		tmp2.tv_nsec = tp->tv_nsec;
+		//return NULL;
+		}
+		
+	}
+  
 }
 
 int main(int argc, char const *argv[])
@@ -97,20 +121,25 @@ int main(int argc, char const *argv[])
         pthread_t LOGGING;
         int a1, a2, a3;
    		t1.tv_sec = 0;
-   		t1.tv_nsec = freq;  
+   		t1.tv_nsec = freq; 
+		tmp1.tv_sec = 0;
+		tmp1.tv_sec = 0;
+		tmp2.tv_sec = 0;
+		tmp2.tv_sec = 0;
+
 		pthread_mutex_init(&mutex, NULL);        
-   		while(1)
-        {
-			nanosleep(&t1 , &t2);
-			a1 = pthread_create(&INPUT,NULL,getFreq,&check_freq);
+   		
+        
+			
+			a1 = pthread_create(&INPUT,NULL,getFreq,&freq);
         	a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
         	a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
         	pthread_join(INPUT,NULL);
         	pthread_join(SAMPLE,NULL);
 			pthread_join(LOGGING,NULL);
-			pthread_mutex_init(&mutex, NULL);
 			
 			
-        }	
+			
+        	
 		return 0;
 }
