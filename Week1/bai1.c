@@ -11,13 +11,13 @@ struct timespec tmp1;
 struct timespec tmp2;
 struct timespec t1;
 struct timespec t2;
-long freq;
-long check_freq;
+unsigned long freq;
+unsigned long check_freq;
   
 
-long get_freq()
+unsigned long get_freq()
 {
- 	long data;
+ 	unsigned long data;
  	FILE *f;
 	f = fopen("freq.txt","r");
 	char buff[100];
@@ -32,7 +32,7 @@ void *getTime(void *args )
 {		
 		while (1)
 		{
-			long x = *((long*)args);
+			unsigned long x = *((unsigned long*)args);
 			clock_nanosleep(CLOCK_REALTIME,0,&t1,&t2);
 			clock_gettime(CLOCK_REALTIME,&tmp1);	
 			//return NULL;
@@ -45,12 +45,12 @@ void *getFreq(void *args)
 {
 	while(1){
 		pthread_mutex_lock(&mutex);
-		long x = *((long*)args);
-		long new_freq = get_freq();
+		unsigned long x = *((unsigned long*)args);
+		unsigned long new_freq = get_freq();
 		if(new_freq == x)
 		{
 			pthread_mutex_unlock(&mutex);
-			//return NULL;
+			
 		}
    		else
    		{	
@@ -66,10 +66,10 @@ void *getFreq(void *args)
 				t1.tv_nsec = freq%1000000000;
 			} 
 			
-			
+			pthread_mutex_unlock(&mutex); 
 		}
-		pthread_mutex_unlock(&mutex); 
-		//return NULL;
+		
+		
 		}
 	
 
@@ -105,7 +105,7 @@ void *save_time(void *args)
 		fclose(file);
 		tmp2.tv_sec = tp->tv_sec;
 		tmp2.tv_nsec = tp->tv_nsec;
-		//return NULL;
+		
 		}
 		
 	}
@@ -128,18 +128,11 @@ int main(int argc, char const *argv[])
 		tmp2.tv_sec = 0;
 
 		pthread_mutex_init(&mutex, NULL);        
-   		
-        
-			
-			a1 = pthread_create(&INPUT,NULL,getFreq,&freq);
-        	a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
-        	a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
-        	pthread_join(INPUT,NULL);
-        	pthread_join(SAMPLE,NULL);
-			pthread_join(LOGGING,NULL);
-			
-			
-			
-        	
+   		a1 = pthread_create(&INPUT,NULL,getFreq,&freq);
+        a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
+        a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
+        pthread_join(INPUT,NULL);
+        pthread_join(SAMPLE,NULL);
+		pthread_join(LOGGING,NULL);
 		return 0;
 }
