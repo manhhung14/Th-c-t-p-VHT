@@ -6,7 +6,7 @@
 #include"stdlib.h"
 #include "unistd.h"
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;  
+
 struct timespec tmp1;
 struct timespec tmp2;
 struct timespec t1;
@@ -35,7 +35,7 @@ void *getTime(void *args )
 			unsigned long x = *((unsigned long*)args);
 			clock_nanosleep(CLOCK_REALTIME,0,&t1,&t2);
 			clock_gettime(CLOCK_REALTIME,&tmp1);	
-			//return NULL;
+			
 		}
 		
 		
@@ -44,17 +44,12 @@ void *getTime(void *args )
 void *getFreq(void *args)
 {
 	while(1){
-		pthread_mutex_lock(&mutex);
+		
 		unsigned long x = *((unsigned long*)args);
 		unsigned long new_freq = get_freq();
-		if(new_freq == x)
-		{
-			pthread_mutex_unlock(&mutex);
-			
-		}
-   		else
-   		{	
 		
+		if ( new_freq != x )
+		{
 			freq = new_freq;
 			if (freq<1000000000)
 			{
@@ -65,9 +60,8 @@ void *getFreq(void *args)
 				t1.tv_sec = freq/1000000000;
 				t1.tv_nsec = freq%1000000000;
 			} 
-			
-			pthread_mutex_unlock(&mutex); 
 		}
+		
 		
 		
 		}
@@ -125,9 +119,7 @@ int main(int argc, char const *argv[])
 		tmp1.tv_sec = 0;
 		tmp1.tv_sec = 0;
 		tmp2.tv_sec = 0;
-		tmp2.tv_sec = 0;
-
-		pthread_mutex_init(&mutex, NULL);        
+		tmp2.tv_sec = 0;        
    		a1 = pthread_create(&INPUT,NULL,getFreq,&freq);
         a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
         a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
