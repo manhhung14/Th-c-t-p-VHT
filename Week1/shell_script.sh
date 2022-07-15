@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
+gcc -pthread -o bai1 bai1.c
 echo "start"
 echo "1000000">freq.txt
 timeout 60s ./bai1
