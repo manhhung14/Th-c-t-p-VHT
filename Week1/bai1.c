@@ -6,15 +6,12 @@
 #include"stdlib.h"
 #include "unistd.h"
 
-
 struct timespec tmp1;
 struct timespec tmp2;
 struct timespec t1;
 struct timespec t2;
 unsigned long freq;
-unsigned long check_freq;
   
-
 unsigned long get_freq()
 {
  	unsigned long data;
@@ -30,13 +27,18 @@ unsigned long get_freq()
 
 void *getTime(void *args )
 {		
-		while (1)
+	while (1)
+	{
+		unsigned long x = *((unsigned long*)args);
+		if (clock_nanosleep(CLOCK_REALTIME,0,&t1,&t2) == 0)
 		{
-			unsigned long x = *((unsigned long*)args);
-			clock_nanosleep(CLOCK_REALTIME,0,&t1,&t2);
-			clock_gettime(CLOCK_REALTIME,&tmp1);	
-			
+			clock_gettime(CLOCK_REALTIME,&tmp1);
 		}
+		
+		
+			
+			
+	}
 		
 		
 }
@@ -62,12 +64,10 @@ void *getFreq(void *args)
 			} 
 		}
 		
-		
-		
 		}
 	
-
 }
+
 void *save_time(void *args)
 {
 	while(1){
@@ -109,22 +109,22 @@ void *save_time(void *args)
 int main(int argc, char const *argv[])
 {
 	
-		freq = get_freq();
-        pthread_t SAMPLE;
-        pthread_t INPUT;
-        pthread_t LOGGING;
-        int a1, a2, a3;
-   		t1.tv_sec = 0;
-   		t1.tv_nsec = freq; 
-		tmp1.tv_sec = 0;
-		tmp1.tv_sec = 0;
-		tmp2.tv_sec = 0;
-		tmp2.tv_sec = 0;        
-   		a1 = pthread_create(&INPUT,NULL,getFreq,&freq);
-        a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
-        a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
-        pthread_join(INPUT,NULL);
-        pthread_join(SAMPLE,NULL);
-		pthread_join(LOGGING,NULL);
-		return 0;
+	freq = get_freq();
+    pthread_t SAMPLE;
+    pthread_t INPUT;
+    pthread_t LOGGING;
+    int a1, a2, a3;
+   	t1.tv_sec = 0;
+   	t1.tv_nsec = freq; 
+	tmp1.tv_sec = 0;
+	tmp1.tv_sec = 0;
+	tmp2.tv_sec = 0;
+	tmp2.tv_sec = 0;        
+   	a1 = pthread_create(&INPUT,NULL,getFreq,&freq);
+    a2 = pthread_create(&SAMPLE, NULL, getTime,&freq);
+    a3 = pthread_create(&LOGGING,NULL,save_time,&tmp1);
+    pthread_join(INPUT,NULL);
+    pthread_join(SAMPLE,NULL);
+	pthread_join(LOGGING,NULL);
+	return 0;
 }
