@@ -46,6 +46,7 @@ void *getTime(void *args )
 void *getFreq(void *args)
 {
 	unsigned long x = *((unsigned long*)args);
+	freq = x;
 	while(1){
 		
 		
@@ -55,7 +56,9 @@ void *getFreq(void *args)
 		{
 			freq = new_freq;
 			
-			if (freq<1000000000)
+			
+		}
+		if (freq<1000000000)
 			{
 				t1.tv_sec = 0;
 				t1.tv_nsec = freq;
@@ -64,7 +67,6 @@ void *getFreq(void *args)
 				t1.tv_sec = freq/1000000000;
 				t1.tv_nsec = freq%1000000000;
 			} 
-		}
 		
 		}
 	
@@ -81,8 +83,9 @@ void *save_time(void *args)
 		if(tmp2.tv_sec != tmp1.tv_sec | tmp2.tv_nsec != tmp1.tv_nsec)
 		{
 		FILE *file;
-		file = fopen("time_and_interval.txt","a+");
-		//file = fopen("100.txt","a+");
+		//FILE *file1;
+		file = fopen("time_and_interval_freq.txt","a+");
+		//file1 = fopen("1000000.txt","a+");
 		
 		unsigned long sub_sec;
 		unsigned long sub_nsec;
@@ -100,8 +103,9 @@ void *save_time(void *args)
 		}
 		
 		fprintf(file,"\n%ld.%09ld\n%ld.%09ld",tmp1.tv_sec,tmp1.tv_nsec,sub_sec,sub_nsec); 
-		//fprintf(file,"\n%ld.%09ld",sub_sec,sub_nsec);  
+		//fprintf(file1,"\n%ld.%09ld",sub_sec,sub_nsec);  
 		fclose(file);
+		//fclose(file1);
 		tmp2.tv_sec = tmp1.tv_sec;
 		tmp2.tv_nsec = tmp1.tv_nsec;
 		
