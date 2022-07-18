@@ -8,7 +8,7 @@
 
 struct timespec T;
 struct timespec tp;
-struct timespec temp;
+struct timespec tmp;
 long freq;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -37,11 +37,11 @@ long get_freq()
 
 void *getTime(void *args)
 {	long freq = *((long*)args);
-	clock_gettime(CLOCK_REALTIME,&temp);	
+	clock_gettime(CLOCK_REALTIME,&tmp);	
 	while (1)
 	{
 		
-		sleep_until(&temp, freq);
+		sleep_until(&tmp, freq);
 		clock_gettime(CLOCK_REALTIME,&T);
 			
 	}
